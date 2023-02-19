@@ -1,4 +1,5 @@
 from flask import Flask,render_template,Response,request
+# import face_recognition
 import csv
 import cv2
 import os
@@ -30,12 +31,16 @@ def attendance():
     return render_template('attendance.html', page_title="Attendance")
 @app.route('/visitor',methods=['GET','POST'])
 def visitor():
-    # if request.method=='POST': 
-    #     empName = request.form['empName']
-    #     empId = request.form['empId']
-    #     success, frame = cap.read()
-    #     print(os.path.abspath("TrainingImage"))
-    #     cv2.imwrite(f"{os.path.abspath('TrainingImage')}{os.sep}{empName}-{empId}.jpg",frame)
+    lenlstImgs = len(os.listdir(os.sep+'TrainingImage'))
+    lstImagesEncodings=[]
+    for i in range(lenlstImgs):
+        img = cv2.imread(os.sep+'TrainingImage'+os.sep+i)
+        print(img)
+        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        lstImagesEncodings.append(face_recognition.face_encodings(rgb_img)[0])
+    success, frame = cap.read()
+    img_encoding = face_recognition.face_encodings(frame)[0]
+    print(face_recognition.compare_faces(lstImagesEncodings, img_encoding))
     return render_template('visitor.html', page_title="Visitor")
 def gen_frames():  
     while True:
