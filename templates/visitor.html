@@ -32,8 +32,18 @@
             >
               {{ page_title }}
             </h3>
+            {% with messages = get_flashed_messages() %}
+         {% if messages %}
+            <ul class="my-5">
+               {% for message in messages %}
+               <li>{{ message }}</li>
+               {% endfor %}
+            </ul>
+         {% endif %}
+      {% endwith %}
             <img
               src="{{ url_for('video_feed') }}"
+              class="my-5"
               width="100%"
               style="
                 /* border-radius: 7px; */

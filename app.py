@@ -1,5 +1,5 @@
-from flask import Flask,render_template,Response,request
-# import face_recognition
+from flask import Flask,render_template,Response,request,flash,get_flashed_messages
+import face_recognition
 import csv
 import cv2
 import os
@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 from threading import Thread
 app = Flask(__name__)
-
+app.secret_key = 'random string'
 cap = cv2.VideoCapture(0)
 @app.route('/register',methods=['GET','POST'])
 def index():
@@ -31,16 +31,25 @@ def attendance():
     return render_template('attendance.html', page_title="Attendance")
 @app.route('/visitor',methods=['GET','POST'])
 def visitor():
-    lenlstImgs = len(os.listdir(os.sep+'TrainingImage'))
+    lenlstImgs = os.listdir('TrainingImage')
+    print(lenlstImgs)
     lstImagesEncodings=[]
-    for i in range(lenlstImgs):
-        img = cv2.imread(os.sep+'TrainingImage'+os.sep+i)
-        print(img)
+    for i in range(len(lenlstImgs)):
+        img = cv2.imread(fr".{os.sep}TrainingImage{os.sep}{lenlstImgs[i]}")
         rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         lstImagesEncodings.append(face_recognition.face_encodings(rgb_img)[0])
     success, frame = cap.read()
+    flash("Result: Recognizing...")
     img_encoding = face_recognition.face_encodings(frame)[0]
-    print(face_recognition.compare_faces(lstImagesEncodings, img_encoding))
+    arrOfBoolValues = face_recognition.compare_faces(lstImagesEncodings, img_encoding)
+    print(arrOfBoolValues)
+    idxOfTrue=-1
+    if True in arrOfBoolValues:
+        idxOfTrue = arrOfBoolValues.index(True)
+        print("Result: ", lenlstImgs[idxOfTrue][0:-4])
+        flash(f"Result: {lenlstImgs[idxOfTrue][0:-4]}")
+    else:
+        flash("Face Not Found")
     return render_template('visitor.html', page_title="Visitor")
 def gen_frames():  
     while True:
@@ -64,7 +73,8 @@ def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')                
 # -------------- image labesl ------------------------
 if __name__ == "__main__":
-    app.run(debug=True,host="192.168.0.104")
+    # app.run(debug=True,host="192.168.0.104")
+    app.run(debug=True)
 # def getImagesAndLabels(path):
 #     # get the path of all the files in the folder
 #     imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
